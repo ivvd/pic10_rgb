@@ -6,6 +6,15 @@
     
     __CONFIG _CP_OFF & _MCLRE_OFF & _WDT_OFF
     
+    ; --- Variable definitions ---
+    cblock 0x10
+        r_val, g_val, b_val
+	act_tmr, act_gpio
+    endc
+   
+    ; --- Code section ---
+    code
+    
     org	    0x00
     movlw   0x40
     movwf   OSCCAL
@@ -35,5 +44,25 @@ Main
     movlw   b'00000111'
     xorwf   GPIO, F
     goto    Main
+    
+LoadGPIO
+    clrf    act_gpio
+    
+    rrf	    r_val, F
+    btfsc   STATUS, C
+    bsf	    act_gpio, 0
+    
+    rrf	    g_val, F
+    btfsc   STATUS, C
+    bsf	    act_gpio, 1
+    
+    rrf	    b_val, F
+    btfsc   STATUS, C
+    bsf	    act_gpio, 2
+    
+    movf    act_gpio, W
+    movwf   GPIO
+    
+    retlw   0
     
     end
