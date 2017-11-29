@@ -10,6 +10,8 @@
     cblock 0x10
         r_val, g_val, b_val
 	act_tmr, act_gpio
+	r_cntr, g_cntr, b_cntr
+	color_state
     endc
    
     ; --- Code section ---
@@ -32,27 +34,32 @@ Init
     movlw   b'00001000'
     tris    GPIO
     
-    movlw   2
-    movwf   TMR0
+    clrf    TMR0
+    
+    call    StartColors
+    call    UpdateBAMValues
     
 Main
-    movf    TMR0, W
+    movf    act_tmr, W
+    subwf   TMR0, W
     btfss   STATUS, Z
     goto    Main
-    movlw   2
-    movwf   TMR0
-    movlw   b'00000111'
-    xorwf   GPIO, F
+    call    LoadGPIO
+    bcf	    STATUS, C
+    rlf	    act_tmr, F
+    btfss   STATUS, C
+    goto    Main
+    call    UpdateBAMValues
     goto    Main
     
-LoadGPIO
+LoadGPIO    ; 14 cycles
     clrf    act_gpio
     
-    rrf	    r_val, F
+    rrf	    g_val, F
     btfsc   STATUS, C
     bsf	    act_gpio, 0
     
-    rrf	    g_val, F
+    rrf	    r_val, F
     btfsc   STATUS, C
     bsf	    act_gpio, 1
     
@@ -63,6 +70,67 @@ LoadGPIO
     movf    act_gpio, W
     movwf   GPIO
     
+    retlw   0
+    
+UpdateBAMValues	; 10 cycles
+    movlw   1
+    movwf   act_tmr
+    
+    movf    g_cntr, W
+    movwf   g_val
+    movf    r_cntr, W
+    movwf   r_val
+    movf    b_cntr, W
+    movwf   b_val
+    
+    call    CalcNewColors
+    
+    retlw   0
+
+StartColors
+    movlw   0x00
+    movwf   g_cntr
+    movlw   0x00
+    movwf   r_cntr
+    movlw   0xFF
+    movwf   b_cntr
+    movlw   b'00000001'
+    movwf   color_state
+
+CalcNewColors
+    btfsc   color_state, 0x00
+    goto    R_UP
+    btfsc   color_state, 0x01
+    goto    R_DOWN
+    btfsc   color_state, 0x02
+    goto    G_UP
+    btfsc   color_state, 0x03
+    goto    G_DOWN
+R_UP
+    incfsz  r_cntr, F
+    goto    CalcNewColorsEnd
+    movlw   0xFF
+    movwf   r_cntr
+    movlw   b'00000010'
+    movwf   color_state
+R_DOWN
+    decfsz  r_cntr, F
+    goto    CalcNewColorsEnd
+    movlw   b'00000100'
+    movwf   color_state
+G_UP
+    incfsz  g_cntr, F
+    goto    CalcNewColorsEnd
+    movlw   0xFF
+    movwf   g_cntr
+    movlw   b'00001000'
+    movwf   color_state
+G_DOWN
+    decfsz  g_cntr, F
+    goto    CalcNewColorsEnd
+    movlw   b'00000001'
+    movwf   color_state
+CalcNewColorsEnd
     retlw   0
     
     end
