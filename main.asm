@@ -11,7 +11,7 @@
         r_val, g_val, b_val
 	act_tmr, act_gpio
 	r_cntr, g_cntr, b_cntr
-	color_state
+	color_state, color_change
     endc
    
     ; --- Code section ---
@@ -83,6 +83,8 @@ UpdateBAMValues
     movf    b_cntr, W
     movwf   b_val
     
+    incf    color_change, F
+    btfsc   color_change, 0x00
     call    CalcNewColors
     
     retlw   0
