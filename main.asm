@@ -26,8 +26,8 @@ Init
     movlw   b'01010001'
     movwf   CMCON0
     ; Disable wake-up on pin change bit, disable weak pull-ups
-    ; TMR0 prescaler - 32
-    movlw   b'11000100'
+    ; TMR0 prescaler - 16
+    movlw   b'11000011'
     option
     ; Setup GPIO, GP0..2 - outputs, GP3 - input
     clrf    GPIO
@@ -72,7 +72,7 @@ LoadGPIO    ; 14 cycles
     
     retlw   0
     
-UpdateBAMValues	; 10 cycles
+UpdateBAMValues
     movlw   1
     movwf   act_tmr
     
