@@ -36,7 +36,7 @@ Init
     
     clrf    TMR0
     
-    call    StartColors
+    call    StartColorsRB
     call    UpdateBAMValues
     
 Main
@@ -85,11 +85,10 @@ UpdateBAMValues
     
     incf    color_change, F
     btfsc   color_change, 0x00
-    call    CalcNewColors
-    
+    call    CalcNewColorsRB    
     retlw   0
 
-StartColors
+StartColorsRG
     movlw   0x00
     movwf   g_cntr
     movlw   0x00
@@ -98,41 +97,89 @@ StartColors
     movwf   b_cntr
     movlw   b'00000001'
     movwf   color_state
+    
+StartColorsRB
+    movlw   0xFF
+    movwf   g_cntr
+    movlw   0x00
+    movwf   r_cntr
+    movlw   0x00
+    movwf   b_cntr
+    movlw   b'00000001'
+    movwf   color_state
 
-CalcNewColors
+; Blue always on, red and green goes up and down
+CalcNewColorsRG
     btfsc   color_state, 0x00
-    goto    R_UP
+    goto    RG_R_UP
     btfsc   color_state, 0x01
-    goto    R_DOWN
+    goto    RG_R_DOWN
     btfsc   color_state, 0x02
-    goto    G_UP
+    goto    RG_G_UP
     btfsc   color_state, 0x03
-    goto    G_DOWN
-R_UP
+    goto    RG_G_DOWN
+RG_R_UP
     incfsz  r_cntr, F
-    goto    CalcNewColorsEnd
+    goto    CalcNewColorsRGEnd
     movlw   0xFF
     movwf   r_cntr
     movlw   b'00000010'
     movwf   color_state
-R_DOWN
+RG_R_DOWN
     decfsz  r_cntr, F
-    goto    CalcNewColorsEnd
+    goto    CalcNewColorsRGEnd
     movlw   b'00000100'
     movwf   color_state
-G_UP
+RG_G_UP
     incfsz  g_cntr, F
-    goto    CalcNewColorsEnd
+    goto    CalcNewColorsRGEnd
     movlw   0xFF
     movwf   g_cntr
     movlw   b'00001000'
     movwf   color_state
-G_DOWN
+RG_G_DOWN
     decfsz  g_cntr, F
-    goto    CalcNewColorsEnd
+    goto    CalcNewColorsRGEnd
     movlw   b'00000001'
     movwf   color_state
-CalcNewColorsEnd
+CalcNewColorsRGEnd
+    retlw   0
+    
+; Green always on, red and blue goes up and down
+CalcNewColorsRB
+    btfsc   color_state, 0x00
+    goto    RB_R_UP
+    btfsc   color_state, 0x01
+    goto    RB_R_DOWN
+    btfsc   color_state, 0x02
+    goto    RB_B_UP
+    btfsc   color_state, 0x03
+    goto    RB_B_DOWN
+RB_R_UP
+    incfsz  r_cntr, F
+    goto    CalcNewColorsRBEnd
+    movlw   0xFF
+    movwf   r_cntr
+    movlw   b'00000010'
+    movwf   color_state
+RB_R_DOWN
+    decfsz  r_cntr, F
+    goto    CalcNewColorsRBEnd
+    movlw   b'00000100'
+    movwf   color_state
+RB_B_UP
+    incfsz  b_cntr, F
+    goto    CalcNewColorsRBEnd
+    movlw   0xFF
+    movwf   b_cntr
+    movlw   b'00001000'
+    movwf   color_state
+RB_B_DOWN
+    decfsz  b_cntr, F
+    goto    CalcNewColorsRBEnd
+    movlw   b'00000001'
+    movwf   color_state
+CalcNewColorsRBEnd
     retlw   0
     
     end
