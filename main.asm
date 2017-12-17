@@ -11,7 +11,7 @@
         r_val, g_val, b_val
 	act_tmr, act_gpio
 	r_cntr, g_cntr, b_cntr
-	color_state, color_change
+	color_state, color_change, color_pattern
     endc
    
     ; --- Code section ---
@@ -34,6 +34,8 @@ Init
     movlw   b'00001000'
     tris    GPIO
     
+    clrf   color_pattern
+    
     clrf    TMR0
     
     call    StartColorsRG
@@ -49,6 +51,7 @@ Main
     rlf	    act_tmr, F
     btfss   STATUS, C
     goto    Main
+    call    CheckButton
     call    UpdateBAMValues
     goto    Main
     
@@ -84,8 +87,42 @@ UpdateBAMValues
     movwf   b_val
     
     incf    color_change, F
-    btfsc   color_change, 0x00
+    btfss   color_change, 0x00
+    retlw   0
+    
+    movlw   0
+    subwf   color_pattern, W
+    btfsc   STATUS, Z
     call    CalcNewColorsRG
+    
+    movlw   1
+    subwf   color_pattern, W
+    btfsc   STATUS, Z
+    call    CalcNewColorsRB   
+    
+    retlw   0
+
+; Test button input - GPIO3, if pressed (pulled to GND) inrement color_pattern.
+; Initialize colors for selected pattern
+CheckButton
+    btfsc   GPIO, 0x03
+    retlw   0
+    incf    color_pattern, F
+    movlw   2 ; (Max value + 1) for color_pattern
+    subwf   color_pattern, W
+    btfsc   STATUS, Z   
+    clrf    color_pattern
+    
+    movlw   0
+    subwf   color_pattern, W
+    btfsc   STATUS, Z
+    call    StartColorsRG
+    
+    movlw   1
+    subwf   color_pattern, W
+    btfsc   STATUS, Z
+    call    StartColorsRB   
+    
     retlw   0
 
 StartColorsRG
