@@ -36,7 +36,7 @@ Init
     
     clrf    TMR0
     
-    call    StartColorsRB
+    call    StartColorsRG
     call    UpdateBAMValues
     
 Main
@@ -85,7 +85,7 @@ UpdateBAMValues
     
     incf    color_change, F
     btfsc   color_change, 0x00
-    call    CalcNewColorsRB    
+    call    CalcNewColorsRG
     retlw   0
 
 StartColorsRG
@@ -97,6 +97,7 @@ StartColorsRG
     movwf   b_cntr
     movlw   b'00000001'
     movwf   color_state
+    retlw   0
     
 StartColorsRB
     movlw   0xFF
@@ -107,6 +108,7 @@ StartColorsRB
     movwf   b_cntr
     movlw   b'00000001'
     movwf   color_state
+    retlw   0
 
 ; Blue always on, red and green goes up and down
 CalcNewColorsRG
